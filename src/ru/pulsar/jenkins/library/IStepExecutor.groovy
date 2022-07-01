@@ -1,7 +1,11 @@
 package ru.pulsar.jenkins.library
 
+import jenkins.plugins.http_request.HttpMode
+import jenkins.plugins.http_request.MimeType
+import jenkins.plugins.http_request.ResponseContentSupplier
 import org.jenkinsci.plugins.pipeline.utility.steps.fs.FileWrapper
 import org.jenkinsci.plugins.workflow.support.actions.EnvironmentAction
+import org.jenkinsci.plugins.workflow.support.steps.build.RunWrapper
 
 interface IStepExecutor {
 
@@ -69,7 +73,9 @@ interface IStepExecutor {
 
     def catchError(Closure body)
 
-    def httpRequest(String url, String outputFile, String responseHandle, boolean wrapAsMultipart)
+    ResponseContentSupplier httpRequest(String url, String outputFile, String responseHandle, boolean wrapAsMultipart)
+
+    ResponseContentSupplier httpRequest(String url, HttpMode httpMode, MimeType contentType, String requestBody, String validResponseCodes, boolean consoleLogResponseBody)
 
     def error(String errorMessage)
 
@@ -88,4 +94,6 @@ interface IStepExecutor {
     def brokenBuildSuspects()
 
     def brokenTestsSuspects()
+
+    RunWrapper currentBuild()
 }

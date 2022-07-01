@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.beanutils.BeanUtilsBean
 import org.apache.commons.beanutils.ConvertUtilsBean
 import ru.pulsar.jenkins.library.IStepExecutor
-import ru.pulsar.jenkins.library.configuration.email.EmailExtConfiguration
+import ru.pulsar.jenkins.library.configuration.notification.email.EmailExtConfiguration
 import ru.pulsar.jenkins.library.ioc.ContextRegistry
+
+import static java.util.Collections.emptySet
 
 class ConfigurationReader implements Serializable {
 
@@ -64,38 +66,20 @@ class ConfigurationReader implements Serializable {
             "smokeTestOptions",
             "syntaxCheckOptions",
             "resultsTransformOptions",
+            "notificationsOptions",
             "emailNotificationOptions",
             "alwaysEmailOptions",
             "successEmailOptions",
             "failureEmailOptions",
             "unstableEmailOptions",
-            "recipientProviders"
+            "recipientProviders",
+            "telegramNotificationOptions"
         ).toSet()
 
         mergeObjects(baseConfiguration, configurationToMerge, nonMergeableSettings)
         mergeInitInfoBaseOptions(baseConfiguration.initInfoBaseOptions, configurationToMerge.initInfoBaseOptions)
         mergeBddOptions(baseConfiguration.bddOptions, configurationToMerge.bddOptions)
-
-        def emailNotificationOptionsToMerge = configurationToMerge.emailNotificationOptions
-        def emailNotificationOptionsBase = baseConfiguration.emailNotificationOptions
-        if (emailNotificationOptionsToMerge != null) {
-            mergeEmailExtConfiguration(
-                emailNotificationOptionsBase.successEmailOptions,
-                emailNotificationOptionsToMerge.successEmailOptions
-            )
-            mergeEmailExtConfiguration(
-                emailNotificationOptionsBase.failureEmailOptions,
-                emailNotificationOptionsToMerge.failureEmailOptions
-            )
-            mergeEmailExtConfiguration(
-                emailNotificationOptionsBase.unstableEmailOptions,
-                emailNotificationOptionsToMerge.unstableEmailOptions
-            )
-            mergeEmailExtConfiguration(
-                emailNotificationOptionsBase.alwaysEmailOptions,
-                emailNotificationOptionsToMerge.alwaysEmailOptions
-            )
-        }
+        mergeNotificationsOptions(baseConfiguration.notificationsOptions, configurationToMerge.notificationsOptions)
 
         return baseConfiguration;
     }
@@ -140,6 +124,44 @@ class ConfigurationReader implements Serializable {
             return
         }
         baseObject.vrunnerSteps = objectToMerge.vrunnerSteps.clone()
+    }
+
+
+    private static void mergeNotificationsOptions(NotificationsOptions baseObject, NotificationsOptions objectToMerge) {
+        if (objectToMerge == null) {
+            return
+        }
+
+        if (objectToMerge.telegramNotificationOptions != null) {
+
+            mergeObjects(
+                baseObject.telegramNotificationOptions,
+                objectToMerge.telegramNotificationOptions,
+                emptySet()
+            )
+        }
+
+        def emailNotificationOptionsBase = baseObject.emailNotificationOptions
+        def emailNotificationOptionsToMerge = objectToMerge.emailNotificationOptions
+
+        if (emailNotificationOptionsToMerge != null) {
+            mergeEmailExtConfiguration(
+                emailNotificationOptionsBase.successEmailOptions,
+                emailNotificationOptionsToMerge.successEmailOptions
+            )
+            mergeEmailExtConfiguration(
+                emailNotificationOptionsBase.failureEmailOptions,
+                emailNotificationOptionsToMerge.failureEmailOptions
+            )
+            mergeEmailExtConfiguration(
+                emailNotificationOptionsBase.unstableEmailOptions,
+                emailNotificationOptionsToMerge.unstableEmailOptions
+            )
+            mergeEmailExtConfiguration(
+                emailNotificationOptionsBase.alwaysEmailOptions,
+                emailNotificationOptionsToMerge.alwaysEmailOptions
+            )
+        }
     }
 
     @NonCPS
