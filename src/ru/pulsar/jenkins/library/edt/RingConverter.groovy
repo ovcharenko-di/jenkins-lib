@@ -65,15 +65,15 @@ class RingConverter implements IEdtCliEngine {
         def workspaceDir = FileUtils.getFilePath("$env.WORKSPACE/$DesignerToEdtFormatTransformation.WORKSPACE")
         def srcDir = config.srcDir
         def configurationRoot = FileUtils.getFilePath("$env.WORKSPACE/$srcDir")
-        def projectName = configurationRoot.getName()
 
         steps.deleteDir(workspaceDir)
-        steps.deleteDir(configurationRoot)
+
+        def edtSrcRoot = FileUtils.getFilePath("$workspaceDir/$EDT.EDT_PROJECT_NAME")
 
         Logger.println("Конвертация исходников из формата конфигуратора в формат EDT с помощью ring")
 
         String edtVersionForRing = EDT.ringModule(config)
-        String ringCommand = "ring $edtVersionForRing workspace import --configuration-files \"$configurationRoot\" --project-name \"$projectName\" --workspace-location \"$workspaceDir\""
+        String ringCommand = "ring $edtVersionForRing workspace import --configuration-files \"$configurationRoot\" --project \"$edtSrcRoot\" --workspace-location \"$workspaceDir\""
 
         steps.ringCommand(ringCommand)
 

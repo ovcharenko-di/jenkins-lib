@@ -6,6 +6,7 @@ import ru.pulsar.jenkins.library.configuration.JobConfiguration
 import ru.pulsar.jenkins.library.steps.DesignerToEdtFormatTransformation
 import ru.pulsar.jenkins.library.steps.EdtToDesignerFormatTransformation
 import ru.pulsar.jenkins.library.steps.EdtValidate
+import ru.pulsar.jenkins.library.utils.EDT
 import ru.pulsar.jenkins.library.utils.FileUtils
 import ru.pulsar.jenkins.library.utils.Logger
 
@@ -65,13 +66,14 @@ class NativeEdtCliConverter implements IEdtCliEngine {
         def workspaceDir = FileUtils.getFilePath("$env.WORKSPACE/$DesignerToEdtFormatTransformation.WORKSPACE")
         def srcDir = config.srcDir
         def configurationRoot = FileUtils.getFilePath("$env.WORKSPACE/$srcDir")
-        def projectName = configurationRoot.getName()
+
+        def edtSrcRoot = FileUtils.getFilePath("$workspaceDir/$EDT.EDT_PROJECT_NAME")
 
         steps.deleteDir(workspaceDir)
 
         Logger.println("Конвертация исходников из формата конфигуратора в формат EDT с помощью 1cedtcli")
 
-        def edtcliCommand = "1cedtcli -data \"$workspaceDir\" -command import --configuration-files \"$configurationRoot\" --project-name \"$projectName\""
+        def edtcliCommand = "1cedtcli -data \"$workspaceDir\" -command import --configuration-files \"$configurationRoot\" --project \"$edtSrcRoot\""
 
         steps.cmd(edtcliCommand)
 
@@ -85,7 +87,9 @@ class NativeEdtCliConverter implements IEdtCliEngine {
         String workspaceLocation = "$env.WORKSPACE/$DesignerToEdtFormatTransformation.WORKSPACE"
         def resultFile = "$env.WORKSPACE/$EdtValidate.RESULT_FILE"
 
-        def edtcliCommand = "1cedtcli -data \"$workspaceLocation\" -command validate --file \"$resultFile\" $projectList"
+        Logger.println("Версия EDT выше 2024.1.X, для валидации используется 1cedtcli")
+
+        def edtcliCommand = "1cedtcli -data \"$workspaceLocation\" -command validate --file \"$resultFile\" --project-list \"$projectList\""
         steps.catchError {
             steps.cmd(edtcliCommand)
         }

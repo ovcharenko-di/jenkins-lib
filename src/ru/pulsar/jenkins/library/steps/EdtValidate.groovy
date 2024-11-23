@@ -5,6 +5,7 @@ import ru.pulsar.jenkins.library.IStepExecutor
 import ru.pulsar.jenkins.library.configuration.JobConfiguration
 import ru.pulsar.jenkins.library.configuration.SourceFormat
 import ru.pulsar.jenkins.library.ioc.ContextRegistry
+import ru.pulsar.jenkins.library.utils.EDT
 import ru.pulsar.jenkins.library.utils.FileUtils
 import ru.pulsar.jenkins.library.utils.Logger
 
@@ -30,23 +31,22 @@ class EdtValidate implements Serializable {
         }
 
         def env = steps.env()
+        def workspaceDir = FileUtils.getFilePath("$env.WORKSPACE/$DesignerToEdtFormatTransformation.WORKSPACE")
 
         String projectList
-
         if (config.sourceFormat == SourceFormat.DESIGNER) {
+
+            // рабочая область в формате EDT уже была сформирована ранее,
+            // поэтому надо получить ее из stash
+
             steps.unstash(DesignerToEdtFormatTransformation.WORKSPACE_ZIP_STASH)
             steps.unzip(DesignerToEdtFormatTransformation.WORKSPACE, DesignerToEdtFormatTransformation.WORKSPACE_ZIP)
 
-            def srcDir = config.srcDir
-            def configurationRoot = FileUtils.getFilePath("$env.WORKSPACE/$srcDir")
+            projectList = FileUtils.getFilePath("$workspaceDir/$EDT.EDT_PROJECT_NAME")
 
-            def projectName = configurationRoot.getName()
-
-            projectList = "--project-name-list $projectName"
         } else {
             def srcDir = config.srcDir
-            def projectDir = FileUtils.getFilePath("$env.WORKSPACE/$srcDir")
-            projectList = "--project-list \"$projectDir\""
+            projectList = FileUtils.getFilePath("$env.WORKSPACE/$srcDir")
         }
 
         Logger.println("Выполнение валидации EDT")
