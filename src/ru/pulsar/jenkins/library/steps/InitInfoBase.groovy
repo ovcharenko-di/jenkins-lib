@@ -61,18 +61,31 @@ class InitInfoBase implements Serializable {
             }
 
             steps.catchError {
+
+                List<Integer> returnStatuses = []
+
                 if (options.additionalInitializationSteps.length == 0) {
                     FileWrapper[] files = steps.findFiles("tools/vrunner.init*.json")
                     files = files.sort new OrderBy( { it.name })
                     files.each {
                         Logger.println("Первичная инициализация файлом ${it.path}")
-                        VRunner.exec("$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\"")
+                        Integer returnStatus = VRunner.exec("$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\"", true)
+                        returnStatuses.add(returnStatus)
                     }
                 } else {
                     options.additionalInitializationSteps.each {
                         Logger.println("Первичная инициализация командой ${it}")
-                        VRunner.exec("$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}")
+                        Integer returnStatus = VRunner.exec("$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}", true)
+                        returnStatuses.add(returnStatus)
                     }
+                }
+
+                if (Collections.max(returnStatuses) >= 2) {
+                    steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
+                } else if (returnStatuses.contains(1)) {
+                    steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги не выполнились корректно")
+                } else {
+                    Logger.println("Инициализация ИБ завершилась успешно")
                 }
             }
         }
