@@ -40,6 +40,8 @@ class InitInfoBase implements Serializable {
                 settingsIncrement = " --settings $vrunnerSettings"
             }
 
+            List<Integer> returnStatuses = []
+
             if (options.runMigration) {
                 Logger.println("Запуск миграции ИБ")
 
@@ -54,15 +56,14 @@ class InitInfoBase implements Serializable {
                 command += settingsIncrement
                 // Запуск миграции
                 steps.catchError {
-                    VRunner.exec(command)
+                    Integer returnStatus = VRunner.exec(command, true)
+                    returnStatuses.add(returnStatus)
                 }
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
             }
 
             steps.catchError {
-
-                List<Integer> returnStatuses = []
 
                 if (options.additionalInitializationSteps.length == 0) {
                     FileWrapper[] files = steps.findFiles("tools/vrunner.init*.json")
