@@ -120,9 +120,7 @@ class InitInfoBase implements Serializable {
             int exitStatus = content.toInteger()
             return exitStatus
 
-        } catch (NumberFormatException ignored) {
-            return 1
-        } catch (NoSuchFileException ignored) {
+        } catch (Exception ignored) {
             return 1
         }
     }
