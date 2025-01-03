@@ -40,7 +40,7 @@ class InitInfoBase implements Serializable {
                 settingsIncrement = " --settings $vrunnerSettings"
             }
 
-            Map<String, Integer> exitStatuses = new HashMap<>()
+            Map<String, Integer> exitStatuses = new LinkedHashMap<>()
 
             if (options.runMigration) {
                 Logger.println("Запуск миграции ИБ")
@@ -54,10 +54,11 @@ class InitInfoBase implements Serializable {
                 command += ' --ibconnection "/F./build/ib"'
 
                 command += settingsIncrement
+                def migrationStatusFile = "build/out/migration-exit-status.log"
+                command += " --exitCodePath \"${migrationStatusFile}\""
                 // Запуск миграции
                 steps.catchError {
-                    Integer exitStatus = VRunner.exec(command, true)
-                    exitStatuses.put(command, exitStatus)
+                    exitStatuses.put(command, readExitStatusFromFile(migrationStatusFile))
                 }
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
@@ -67,7 +68,7 @@ class InitInfoBase implements Serializable {
 
                 if (options.additionalInitializationSteps.length == 0) {
                     FileWrapper[] files = steps.findFiles("tools/vrunner.init*.json")
-                    files = files.sort new OrderBy( { it.name })
+                    files = files.sort new OrderBy({ it.name })
                     files.each {
                         Logger.println("Первичная инициализация файлом ${it.path}")
                         def command = "$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\""
@@ -100,5 +101,24 @@ class InitInfoBase implements Serializable {
 
         steps.stash('init-allure', 'build/out/allure/**', true)
         steps.stash('init-cucumber', 'build/out/cucumber/**', true)
+    }
+
+    static Integer readExitStatusFromFile(String path) {
+
+        IStepExecutor steps = ContextRegistry.getContext().getStepExecutor()
+
+        try {
+
+            String content = steps.readFile(path).trim()
+            if (content.isEmpty()) {
+                return 1
+            }
+
+            int exitStatus = content.toInteger()
+            return exitStatus
+
+        } catch (NumberFormatException ignored) {
+            return 1
+        }
     }
 }
