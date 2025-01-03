@@ -7,8 +7,6 @@ import ru.pulsar.jenkins.library.ioc.ContextRegistry
 import ru.pulsar.jenkins.library.utils.Logger
 import ru.pulsar.jenkins.library.utils.VRunner
 
-import java.nio.file.NoSuchFileException
-
 class InitInfoBase implements Serializable {
 
     private final JobConfiguration config
@@ -112,7 +110,7 @@ class InitInfoBase implements Serializable {
 
         try {
 
-            String content = steps.readFile(path).trim()
+            String content = steps.readFile(path)
             if (content.isEmpty()) {
                 return 1
             }
