@@ -61,8 +61,8 @@ class InitInfoBase implements Serializable {
                 // Запуск миграции
                 steps.catchError {
                     VRunner.exec(command)
-                    exitStatuses.put(command, readExitStatusFromFile(migrationStatusFile))
                 }
+                exitStatuses.put(command, readExitStatusFromFile(migrationStatusFile))
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
             }
@@ -90,7 +90,7 @@ class InitInfoBase implements Serializable {
                 if (Collections.max(exitStatuses.values()) >= 2) {
                     steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
                 } else if (exitStatuses.values().contains(1)) {
-                    steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги не выполнились корректно")
+                    steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
                 } else {
                     Logger.println("Инициализация ИБ завершилась успешно")
                 }
