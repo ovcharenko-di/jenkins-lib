@@ -40,7 +40,7 @@ class InitInfoBase implements Serializable {
                 settingsIncrement = " --settings $vrunnerSettings"
             }
 
-            List<Integer> returnStatuses = []
+            Map<String, Integer> exitStatuses = new HashMap<>()
 
             if (options.runMigration) {
                 Logger.println("Запуск миграции ИБ")
@@ -56,8 +56,8 @@ class InitInfoBase implements Serializable {
                 command += settingsIncrement
                 // Запуск миграции
                 steps.catchError {
-                    Integer returnStatus = VRunner.exec(command, true)
-                    returnStatuses.add(returnStatus)
+                    Integer exitStatus = VRunner.exec(command, true)
+                    exitStatuses.put(command, exitStatus)
                 }
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
@@ -70,24 +70,31 @@ class InitInfoBase implements Serializable {
                     files = files.sort new OrderBy( { it.name })
                     files.each {
                         Logger.println("Первичная инициализация файлом ${it.path}")
-                        Integer returnStatus = VRunner.exec("$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\"", true)
-                        returnStatuses.add(returnStatus)
+                        def command = "$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\""
+                        Integer exitStatus = VRunner.exec(command, true)
+                        exitStatuses.put(command, exitStatus)
                     }
                 } else {
                     options.additionalInitializationSteps.each {
                         Logger.println("Первичная инициализация командой ${it}")
-                        Integer returnStatus = VRunner.exec("$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}", true)
-                        returnStatuses.add(returnStatus)
+                        def command = "$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}"
+                        Integer exitStatus = VRunner.exec(command, true)
+                        exitStatuses.put(command, exitStatus)
                     }
                 }
 
-                if (Collections.max(returnStatuses) >= 2) {
+                if (Collections.max(exitStatuses.values()) >= 2) {
                     steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
-                } else if (returnStatuses.contains(1)) {
+                } else if (exitStatuses.values().contains(1)) {
                     steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги не выполнились корректно")
                 } else {
                     Logger.println("Инициализация ИБ завершилась успешно")
                 }
+
+                exitStatuses.each { key, value ->
+                    Logger.println("${key}: status ${value}")
+                }
+
             }
         }
 
