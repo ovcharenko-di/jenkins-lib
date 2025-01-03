@@ -7,6 +7,8 @@ import ru.pulsar.jenkins.library.ioc.ContextRegistry
 import ru.pulsar.jenkins.library.utils.Logger
 import ru.pulsar.jenkins.library.utils.VRunner
 
+import java.nio.file.NoSuchFileException
+
 class InitInfoBase implements Serializable {
 
     private final JobConfiguration config
@@ -58,6 +60,7 @@ class InitInfoBase implements Serializable {
                 command += " --exitCodePath \"${migrationStatusFile}\""
                 // Запуск миграции
                 steps.catchError {
+                    VRunner.exec(command)
                     exitStatuses.put(command, readExitStatusFromFile(migrationStatusFile))
                 }
             } else {
@@ -118,6 +121,8 @@ class InitInfoBase implements Serializable {
             return exitStatus
 
         } catch (NumberFormatException ignored) {
+            return 1
+        } catch (NoSuchFileException ignored) {
             return 1
         }
     }
