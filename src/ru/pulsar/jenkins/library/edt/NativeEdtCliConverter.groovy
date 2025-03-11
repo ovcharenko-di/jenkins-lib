@@ -49,7 +49,8 @@ class NativeEdtCliConverter implements IEdtCliEngine {
             Logger.println("Конвертация исходников расширения ${it.name} из формата EDT в формат Конфигуратора с помощью 1cedtcli")
             def currentExtensionWorkspaceDir = FileUtils.getFilePath("$workspaceDir/cfe/${it.name}")
 
-            def edtcliCommand = "1cedtcli -data \"$currentExtensionWorkspaceDir\" -command export --configuration-files \"$extensionRoot/${it.name}\" --project ${it.path}"
+            def extPath = FileUtils.getFilePath("$env.WORKSPACE/${it.path}").getRemote()
+            def edtcliCommand = "1cedtcli -data \"$currentExtensionWorkspaceDir\" -command export --configuration-files \"$extensionRoot/${it.name}\" --project \"$extPath\""
 
             steps.cmd(edtcliCommand)
 
