@@ -26,7 +26,6 @@ class NativeEdtCliConverter implements IEdtCliEngine {
 
         steps.deleteDir(configurationRoot)
 
-        def projectName = configurationRoot.getName()
         def edtcliCommand = "1cedtcli -data \"$projectWorkspaceDir\" -command export --configuration-files \"$configurationRoot\" --project \"$projectDir\""
 
         steps.cmd(edtcliCommand)
