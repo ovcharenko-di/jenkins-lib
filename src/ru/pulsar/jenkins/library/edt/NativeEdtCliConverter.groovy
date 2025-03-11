@@ -18,15 +18,15 @@ class NativeEdtCliConverter implements IEdtCliEngine {
 
         String workspaceDir = FileUtils.getFilePath("$env.WORKSPACE/$EdtToDesignerFormatTransformation.WORKSPACE").getRemote()
         String projectWorkspaceDir = FileUtils.getFilePath("$workspaceDir/cf").getRemote()
-        def configurationRoot = FileUtils.getFilePath("$env.WORKSPACE/$EdtToDesignerFormatTransformation.CONFIGURATION_DIR")
-        String configurationRootFullPath = configurationRoot.getRemote()
+        String projectDir = FileUtils.getFilePath("$env.WORKSPACE/$srcDir").getRemote()
+        String configurationRoot = FileUtils.getFilePath("$env.WORKSPACE/$EdtToDesignerFormatTransformation.CONFIGURATION_DIR").getRemote()
 
         Logger.println("Конвертация исходников конфигурации из формата EDT в формат Конфигуратора с помощью 1cedtcli")
 
         steps.deleteDir(configurationRoot)
 
         def projectName = configurationRoot.getName()
-        def edtcliCommand = "1cedtcli -data \"$projectWorkspaceDir\" -command export --configuration-files \"$configurationRootFullPath\" --project-name \"$projectName\""
+        def edtcliCommand = "1cedtcli -data \"$projectWorkspaceDir\" -command export --configuration-files \"$configurationRoot\" --project \"$projectDir\""
 
         steps.cmd(edtcliCommand)
 
