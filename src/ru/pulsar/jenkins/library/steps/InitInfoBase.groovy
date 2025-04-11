@@ -40,6 +40,8 @@ class InitInfoBase implements Serializable {
                 settingsIncrement = " --settings $vrunnerSettings"
             }
 
+            Map<String, Integer> exitStatuses = new LinkedHashMap<>()
+
             if (options.runMigration) {
                 Logger.println("Запуск миграции ИБ")
 
@@ -54,30 +56,48 @@ class InitInfoBase implements Serializable {
                 command += settingsIncrement
                 // Запуск миграции
                 steps.catchError {
-                    VRunner.exec(command)
+                    Integer exitStatus = VRunner.exec(command, true)
+                    exitStatuses.put(command, exitStatus)
                 }
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
             }
 
-            steps.catchError {
-                if (options.additionalInitializationSteps.length == 0) {
-                    FileWrapper[] files = steps.findFiles("tools/vrunner.init*.json")
-                    files = files.sort new OrderBy( { it.name })
-                    files.each {
-                        Logger.println("Первичная инициализация файлом ${it.path}")
-                        VRunner.exec("$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\"")
-                    }
-                } else {
-                    options.additionalInitializationSteps.each {
-                        Logger.println("Первичная инициализация командой ${it}")
-                        VRunner.exec("$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}")
-                    }
+            if (options.additionalInitializationSteps.length == 0) {
+                FileWrapper[] files = steps.findFiles("tools/vrunner.init*.json")
+                files = files.sort new OrderBy({ it.name })
+                files.each {
+                    Logger.println("Первичная инициализация файлом ${it.path}")
+                    def command = "$vrunnerPath vanessa --settings ${it.path} --ibconnection \"/F./build/ib\""
+                    Integer exitStatus = VRunner.exec(command, true)
+                    exitStatuses.put(command, exitStatus)
+                }
+            } else {
+                options.additionalInitializationSteps.each {
+                    Logger.println("Первичная инициализация командой ${it}")
+                    def command = "$vrunnerPath ${it} --ibconnection \"/F./build/ib\"${settingsIncrement}"
+                    Integer exitStatus = VRunner.exec(command, true)
+                    exitStatuses.put(command, exitStatus)
                 }
             }
+
+            if (Collections.max(exitStatuses.values()) >= 2) {
+                steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
+            } else if (exitStatuses.values().contains(1)) {
+                steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
+            } else {
+                Logger.println("Инициализация ИБ завершилась успешно")
+            }
+
+            def exitStatusesMessage = "Статусы команд инициализации:"
+            exitStatuses.each { key, value ->
+                exitStatusesMessage += "\n${key}: status ${value}"
+            }
+            Logger.println(exitStatusesMessage)
         }
 
         steps.stash('init-allure', 'build/out/allure/**', true)
         steps.stash('init-cucumber', 'build/out/cucumber/**', true)
+
     }
 }
