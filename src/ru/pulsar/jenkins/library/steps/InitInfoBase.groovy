@@ -54,10 +54,11 @@ class InitInfoBase implements Serializable {
                 command += ' --ibconnection "/F./build/ib"'
 
                 command += settingsIncrement
+                def migrationStatusFile = "build/migration-exit-status.log"
                 // Запуск миграции
                 steps.catchError {
-                    Integer exitStatus = VRunner.exec(command, true)
-                    exitStatuses.put(command, exitStatus)
+                    VRunner.exec(command, true)
+                    exitStatuses.put(command, readExitStatusFromFile(migrationStatusFile))
                 }
             } else {
                 Logger.println("Шаг миграции ИБ выключен")
@@ -99,5 +100,26 @@ class InitInfoBase implements Serializable {
         steps.stash('init-allure', 'build/out/allure/**', true)
         steps.stash('init-cucumber', 'build/out/cucumber/**', true)
 
+    }
+
+    static Integer readExitStatusFromFile(String path) {
+
+        Logger.println("Читаем статус возврата из файла ${path}")
+
+        IStepExecutor steps = ContextRegistry.getContext().getStepExecutor()
+
+        String content = steps.readFile(path).trim()
+        int exitStatus
+        if (content.empty) {
+            exitStatus = 1
+        } else {
+            try {
+                exitStatus = content.toInteger()
+            } catch (Exception e) {
+                Logger.println("Ошибка при чтении статуса возврата из файла ${path}: $e.message")
+                exitStatus = 1
+            }
+        }
+        return exitStatus
     }
 }
