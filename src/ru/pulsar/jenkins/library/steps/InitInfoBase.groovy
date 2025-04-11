@@ -106,20 +106,23 @@ class InitInfoBase implements Serializable {
 
         Logger.println("Читаем статус возврата из файла ${path}")
 
-        IStepExecutor steps = ContextRegistry.getContext().getStepExecutor()
-
-        String content = steps.readFile(path).trim()
-        int exitStatus
-        if (content.empty) {
-            exitStatus = 1
-        } else {
-            try {
-                exitStatus = content.toInteger()
-            } catch (Exception e) {
-                Logger.println("Ошибка при чтении статуса возврата из файла ${path}: $e.message")
-                exitStatus = 1
+        try {
+            String content = ContextRegistry.getContext().getStepExecutor().readFile(path).trim()
+            if (!content) {
+                Logger.println("Файл со статусом возврата ${path} пуст")
+                return 1
+            } else {
+                return content.toInteger()
             }
+        } catch (FileNotFoundException e) {
+            Logger.println("Файл со статусом возврата ${path} не найден: ${e.message}")
+            return 1
+        } catch (NumberFormatException e) {
+            Logger.println("В файле со статусом возврата ${path} записано не числовое значение: ${e.message}")
+            return 1
+        } catch (Exception e) {
+            Logger.println("При чтении файла со статусом возврата ${path} возникла ошибка: ${e.message}")
+            return 1
         }
-        return exitStatus
     }
 }
