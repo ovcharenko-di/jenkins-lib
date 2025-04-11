@@ -55,6 +55,7 @@ class InitInfoBase implements Serializable {
 
                 command += settingsIncrement
                 def migrationStatusFile = "build/migration-exit-status.log"
+                command += " --exitCodePath \"${migrationStatusFile}\""
                 // Запуск миграции
                 steps.catchError {
                     VRunner.exec(command, true)
