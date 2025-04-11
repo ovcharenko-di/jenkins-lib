@@ -85,7 +85,7 @@ class InitInfoBase implements Serializable {
             if (Collections.max(exitStatuses.values()) >= 2) {
                 steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
             } else if (exitStatuses.values().contains(1)) {
-                steps.unstable("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
+                steps.error("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
             } else {
                 Logger.println("Инициализация ИБ завершилась успешно")
             }
