@@ -7,6 +7,8 @@ import ru.pulsar.jenkins.library.ioc.ContextRegistry
 import ru.pulsar.jenkins.library.utils.Logger
 import ru.pulsar.jenkins.library.utils.VRunner
 
+import java.nio.file.NoSuchFileException
+
 class InitInfoBase implements Serializable {
 
     private final JobConfiguration config
@@ -108,15 +110,18 @@ class InitInfoBase implements Serializable {
         Logger.println("Читаем статус возврата из файла ${path}")
 
         try {
-            String content = ContextRegistry.getContext().getStepExecutor().readFile(path).stripIndent().trim()
-            content.each { println "Char: ${it}" }
+            String content = ContextRegistry.getContext().getStepExecutor()
+                    .readFile(path)
+                    .trim()
+                    .replaceAll(/^\uFEFF/, '') // платформа генерирует файл с BOM
+
             if (!content) {
                 Logger.println("Файл со статусом возврата ${path} пуст")
                 return 1
             } else {
                 return content.toInteger()
             }
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
             Logger.println("Файл со статусом возврата ${path} не найден: ${e.message}")
             return 1
         } catch (NumberFormatException e) {
