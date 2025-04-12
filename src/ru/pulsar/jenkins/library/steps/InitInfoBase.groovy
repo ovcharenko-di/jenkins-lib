@@ -109,7 +109,7 @@ class InitInfoBase implements Serializable {
 
         try {
             String content = ContextRegistry.getContext().getStepExecutor().readFile(path).stripIndent().trim()
-            Logger.println("${content}")
+            content.each { println "Char: ${it}" }
             if (!content) {
                 Logger.println("Файл со статусом возврата ${path} пуст")
                 return 1
