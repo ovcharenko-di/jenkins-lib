@@ -109,7 +109,7 @@ class InitInfoBase implements Serializable {
 
         if (!isInfobaseInitialized) {
             // Throws exception
-            steps.error("Инициализация ИБ завершилась с ошибками")
+            steps.unstable("Инициализация ИБ завершилась с ошибками")
         }
     }
 

@@ -51,7 +51,7 @@ void call() {
 
             stage('Подготовка') {
                 parallel {
-                    stage('Подготовка 1C базы') {
+                    stage('Подготовка 1С базы') {
                         when {
                             beforeAgent true
                             expression { config.stageFlags.needInfoBase() }
@@ -73,7 +73,7 @@ void call() {
                                 }
                             }
 
-                            stage('Подготовка 1С базы') {
+                            stage('Подготовка ИБ') {
                                 agent {
                                     label agent1C
                                 }
@@ -116,7 +116,7 @@ void call() {
                                         }
                                     }
 
-                                    stage('Загрузка расширений в конфигурацию'){
+                                    stage('Загрузка расширений в конфигурацию') {
                                         when {
                                             beforeAgent true
                                             expression { config.needLoadExtensions() }
@@ -139,7 +139,7 @@ void call() {
                                                 script {
                                                     isInfobaseInitialized = initInfobase config
                                                     if (!isInfobaseInitialized) {
-                                                        unstable("Инициализация ИБ не выполнена")  // Mark as unstable but continue
+                                                        unstable("Инициализация ИБ не выполнена")
                                                     }
                                                 }
                                             }
