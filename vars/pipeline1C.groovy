@@ -138,6 +138,9 @@ void call() {
                                                 // Инициализация и первичная миграция
                                                 script {
                                                     isInfobaseInitialized = initInfobase config
+                                                    if (!isInfobaseInitialized) {
+                                                        unstable("Инициализация ИБ не выполнена")  // Mark as unstable but continue
+                                                    }
                                                 }
                                             }
                                         }

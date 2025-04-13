@@ -9,8 +9,7 @@ def call(JobConfiguration config) {
     try {
         initInfobase.run()
         return true
-    } catch (Exception e) {
-        echo("Инициализация ИБ: ${e.getMessage()}")
+    } catch (Exception ignored) {
         return false
     }
 }
