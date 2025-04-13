@@ -136,7 +136,9 @@ void call() {
                                         steps {
                                             timeout(time: config.timeoutOptions.initInfoBase, unit: TimeUnit.MINUTES) {
                                                 // Инициализация и первичная миграция
-                                                isInfobaseInitialized = initInfobase config
+                                                script {
+                                                    isInfobaseInitialized = initInfobase config
+                                                }
                                             }
                                         }
                                     }
