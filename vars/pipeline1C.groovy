@@ -21,8 +21,6 @@ void call() {
     pipeline {
         agent none
 
-        def isInfobaseInitialized = true
-
         options {
             buildDiscarder(logRotator(numToKeepStr: '30'))
             timestamps()
@@ -135,7 +133,7 @@ void call() {
                                         steps {
                                             timeout(time: config.timeoutOptions.initInfoBase, unit: TimeUnit.MINUTES) {
                                                 // Инициализация и первичная миграция
-                                                isInfobaseInitialized = initInfobase config
+                                                def isInfobaseInitialized = initInfobase config
                                             }
                                         }
                                     }
