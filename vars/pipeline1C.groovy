@@ -15,6 +15,9 @@ String agent1C
 @Field
 String agentEdt
 
+@Field
+Boolean isInfobaseInitialized = true
+
 void call() {
 
     //noinspection GroovyAssignabilityCheck
@@ -133,7 +136,7 @@ void call() {
                                         steps {
                                             timeout(time: config.timeoutOptions.initInfoBase, unit: TimeUnit.MINUTES) {
                                                 // Инициализация и первичная миграция
-                                                def isInfobaseInitialized = initInfobase config
+                                                isInfobaseInitialized = initInfobase config
                                             }
                                         }
                                     }
