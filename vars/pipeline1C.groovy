@@ -21,6 +21,8 @@ void call() {
     pipeline {
         agent none
 
+        def isInfobaseInitialized = true
+
         options {
             buildDiscarder(logRotator(numToKeepStr: '30'))
             timestamps()
@@ -133,7 +135,7 @@ void call() {
                                         steps {
                                             timeout(time: config.timeoutOptions.initInfoBase, unit: TimeUnit.MINUTES) {
                                                 // Инициализация и первичная миграция
-                                                initInfobase config
+                                                isInfobaseInitialized = initInfobase config
                                             }
                                         }
                                     }
@@ -209,7 +211,7 @@ void call() {
                         }
                         when {
                             beforeAgent true
-                            expression { config.stageFlags.bdd }
+                            expression { config.stageFlags.bdd && isInfobaseInitialized }
                         }
                         stages {
                             stage('Распаковка ИБ') {
@@ -281,7 +283,7 @@ void call() {
                         }
                         when {
                             beforeAgent true
-                            expression { config.stageFlags.smoke }
+                            expression { config.stageFlags.smoke && isInfobaseInitialized }
                         }
                         stages {
                             stage('Распаковка ИБ') {
@@ -318,7 +320,7 @@ void call() {
                         }
                         when {
                             beforeAgent true
-                            expression { config.stageFlags.yaxunit }
+                            expression { config.stageFlags.yaxunit && isInfobaseInitialized }
                         }
                         stages {
                             stage('Распаковка ИБ') {

@@ -29,6 +29,8 @@ class InitInfoBase implements Serializable {
             return
         }
 
+        def isInfobaseInitialized = true
+
         List<String> logosConfig = ["LOGOS_CONFIG=$config.logosConfig"]
         steps.withEnv(logosConfig) {
 
@@ -86,14 +88,16 @@ class InitInfoBase implements Serializable {
             }
 
             if (Collections.max(exitStatuses.values()) >= 2) {
-                steps.error("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
+                Logger.println("Получен неожиданный/неверный результат работы шагов инициализации ИБ. Возможно, имеется ошибка в параметрах запуска vanessa-runner")
+                isInfobaseInitialized = false
             } else if (exitStatuses.values().contains(1)) {
-                steps.error("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
+                Logger.println("Инициализация ИБ завершилась, но некоторые ее шаги выполнились некорректно")
+                isInfobaseInitialized = false
             } else {
                 Logger.println("Инициализация ИБ завершилась успешно")
             }
 
-            def exitStatusesMessage = "Статусы команд инициализации:"
+            def exitStatusesMessage = "Статусы команд инициализации ИБ:"
             exitStatuses.each { key, value ->
                 exitStatusesMessage += "\n${key}: status ${value}"
             }
@@ -103,6 +107,10 @@ class InitInfoBase implements Serializable {
         steps.stash('init-allure', 'build/out/allure/**', true)
         steps.stash('init-cucumber', 'build/out/cucumber/**', true)
 
+        if (!isInfobaseInitialized) {
+            // Throws exception
+            steps.error("Инициализация ИБ завершилась с ошибками")
+        }
     }
 
     static Integer readExitStatusFromFile(String path) {
