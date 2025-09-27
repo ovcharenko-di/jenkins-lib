@@ -41,16 +41,20 @@ class EdtToDesignerFormatTransformation implements Serializable {
 
         def engine = EdtCliEngineFactory.getEngine(config.edtVersion)
 
-        engine.edtToDesignerTransformConfiguration(steps, config)
-        steps.zip(CONFIGURATION_DIR, CONFIGURATION_ZIP)
+        // file can be restored from the cache
+        if (!steps.fileExists(CONFIGURATION_ZIP)) {
+            engine.edtToDesignerTransformConfiguration(steps, config)
+            steps.zip(CONFIGURATION_DIR, CONFIGURATION_ZIP)
+        }
         steps.stash(CONFIGURATION_ZIP_STASH, CONFIGURATION_ZIP)
 
         if (config.needLoadExtensions()) {
-            engine.edtToDesignerTransformExtensions(steps, config)
-            steps.zip(EXTENSION_DIR, EXTENSION_ZIP)
+            // file can be restored from the cache
+            if (!steps.fileExists(EXTENSION_ZIP)) {
+                engine.edtToDesignerTransformExtensions(steps, config)
+                steps.zip(EXTENSION_DIR, EXTENSION_ZIP)
+            }
             steps.stash(EXTENSION_ZIP_STASH, EXTENSION_ZIP)
         }
-
     }
-
 }

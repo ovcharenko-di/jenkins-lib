@@ -65,7 +65,12 @@ void call() {
                                 }
                                 steps {
                                     timeout(time: config.timeoutOptions.edtToDesignerFormatTransformation, unit: TimeUnit.MINUTES) {
-                                        edtToDesignerFormatTransformation config
+                                        cache(maxCacheSize: 0, caches: [
+                                                arbitraryFileCache(path: 'build/cfg.zip', cacheValidityDecidingFile: 'jobConfiguration.json,build/cfg'),
+                                                arbitraryFileCache(path: 'build/cfe_src.zip', cacheValidityDecidingFile: 'jobConfiguration.json,build/cfe_src')
+                                        ]) {
+                                            edtToDesignerFormatTransformation config
+                                        }
                                     }
                                 }
                             }
