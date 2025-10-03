@@ -17,6 +17,7 @@ class InitInfoBase implements Serializable {
 
     def run() {
         IStepExecutor steps = ContextRegistry.getContext().getStepExecutor()
+        def env = steps.env()
 
         Logger.printLocation()
 

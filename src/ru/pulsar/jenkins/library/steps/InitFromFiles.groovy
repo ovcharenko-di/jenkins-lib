@@ -17,6 +17,7 @@ class InitFromFiles implements Serializable {
 
     def run() {
         IStepExecutor steps = ContextRegistry.getContext().getStepExecutor()
+        def env = steps.env()
 
         Logger.printLocation()
 
@@ -38,7 +39,6 @@ class InitFromFiles implements Serializable {
         String srcDir
 
         if (config.sourceFormat == SourceFormat.EDT) {
-            def env = steps.env()
             srcDir = "$env.WORKSPACE/$EdtToDesignerFormatTransformation.CONFIGURATION_DIR"
 
             steps.unstash(EdtToDesignerFormatTransformation.CONFIGURATION_ZIP_STASH)

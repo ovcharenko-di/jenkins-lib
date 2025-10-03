@@ -9,7 +9,7 @@ import ru.pulsar.jenkins.library.utils.FileUtils
 
 class CreateInfobase implements Serializable {
 
-    private final JobConfiguration config;
+    private final JobConfiguration config
 
     CreateInfobase(JobConfiguration config) {
         this.config = config
@@ -28,7 +28,7 @@ class CreateInfobase implements Serializable {
             return
         }
 
-        steps.installLocalDependencies();
+        steps.installLocalDependencies()
 
         String templateDBPath = config.initInfoBaseOptions.templateDBPath
         if (templateDBPath == '') {
@@ -49,7 +49,7 @@ class CreateInfobase implements Serializable {
 
     private void createBase(String dtPath = '') {
         Logger.println("Создание информационной базы")
-        String vrunnerPath = VRunner.getVRunnerPath();
+        String vrunnerPath = VRunner.getVRunnerPath()
         def initCommand = "$vrunnerPath init-dev  --ibconnection \"/F./build/ib\""
         VRunner.exec(initCommand)
 
