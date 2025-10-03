@@ -21,6 +21,12 @@ class CreateInfobase implements Serializable {
         Logger.printLocation()
 
         def env = steps.env()
+        String pathToInfobase = "$env.WORKSPACE/build/ib/1Cv8.1CD"
+
+        if (steps.fileExists(pathToInfobase)) {
+            // ИБ уже могла быть восстановлена из кэша
+            return
+        }
 
         steps.installLocalDependencies();
 
@@ -30,7 +36,6 @@ class CreateInfobase implements Serializable {
             createBase()
         } else if (templateDBPath.endsWith('.1CD')) {
             // Это файл базы данных 1С, просто скопируем его.
-            String pathToInfobase = "$env.WORKSPACE/build/ib/1Cv8.1CD"
             FileUtils.loadFile(templateDBPath, env, pathToInfobase)
         } else if (templateDBPath.endsWith('.dt')) {
             // Это файл дампа БД, скопируем его и создадим БД.
@@ -40,7 +45,6 @@ class CreateInfobase implements Serializable {
         } else {
             Logger.println("Неизвестный формат базы данных. Поддерживаются только .1CD и .dt")
         }
-
     }
 
     private void createBase(String dtPath = '') {

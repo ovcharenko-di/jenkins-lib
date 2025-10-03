@@ -66,8 +66,8 @@ void call() {
                                 steps {
                                     timeout(time: config.timeoutOptions.edtToDesignerFormatTransformation, unit: TimeUnit.MINUTES) {
                                         cache(maxCacheSize: 0, caches: [
-                                                arbitraryFileCache(path: 'build/cfg.zip', cacheValidityDecidingFile: 'jobConfiguration.json,build/cfg'),
-                                                arbitraryFileCache(path: 'build/cfe_src.zip', cacheValidityDecidingFile: 'jobConfiguration.json,build/cfe_src')
+                                                arbitraryFileCache(path: 'build', includes: 'cf.zip', cacheName: 'cf.zip'),
+                                                arbitraryFileCache(path: 'build', includes: 'cfe_src.zip', cacheName: 'cfe_src.zip')
                                         ]) {
                                             edtToDesignerFormatTransformation config
                                         }
@@ -81,23 +81,28 @@ void call() {
                                 }
 
                                 stages {
-                                    stage('Сборка расширений из исходников') {
+                                    stage('Загрузка расширений, сборка расширений из исходников') {
                                         when {
                                             expression { config.needLoadExtensions() }
                                         }
                                         steps {
                                             timeout(time: config.timeoutOptions.getBinaries, unit: TimeUnit.MINUTES) {
-                                                createDir('build/out/cfe')
-                                                // Соберем или загрузим cfe из исходников и положим их в папку build/out/cfe
-                                                getExtensions config
+                                                cache(maxCacheSize: 0, caches: [
+                                                        arbitraryFileCache(path: 'build/out/cfe', includes: '*.cfe', cacheName: 'cfe')
+                                                ]) {
+                                                    getExtensions config
+                                                }
                                             }
                                         }
                                     }
                                     stage('Создание ИБ') {
                                         steps {
                                             timeout(time: config.timeoutOptions.createInfoBase, unit: TimeUnit.MINUTES) {
-                                                createDir('build/out/')
+                                                cache(maxCacheSize: 0, caches: [
+                                                        arbitraryFileCache(path: 'build/ib', includes: '1Cv8.1CD', cacheName: '1Cv8.1CD (create ib)')
+                                                ]) {
                                                     createInfobase config
+                                                }
                                             }
                                         }
                                     }
@@ -105,13 +110,17 @@ void call() {
                                     stage('Загрузка конфигурации') {
                                         steps {
                                             timeout(time: config.timeoutOptions.loadConfiguration, unit: TimeUnit.MINUTES) {
-                                                script {
-                                                    if (config.infoBaseFromFiles()) {
-                                                        // Создание базы загрузкой из файлов
-                                                        initFromFiles config
-                                                    } else {
-                                                        // Создание базы загрузкой конфигурации из хранилища
-                                                        initFromStorage config
+                                                cache(maxCacheSize: 0, caches: [
+                                                        arbitraryFileCache(path: 'build/ib', includes: '1Cv8.1CD', cacheName: '1Cv8.1CD (load cf)')
+                                                ]) {
+                                                    script {
+                                                        if (config.infoBaseFromFiles()) {
+                                                            // Создание базы загрузкой из файлов
+                                                            initFromFiles config
+                                                        } else {
+                                                            // Создание базы загрузкой конфигурации из хранилища
+                                                            initFromStorage config
+                                                        }
                                                     }
                                                 }
                                             }
@@ -137,8 +146,12 @@ void call() {
                                         }
                                         steps {
                                             timeout(time: config.timeoutOptions.initInfoBase, unit: TimeUnit.MINUTES) {
-                                                // Инициализация и первичная миграция
-                                                initInfobase config
+                                                cache(maxCacheSize: 0, caches: [
+                                                        arbitraryFileCache(path: 'build/ib', includes: '1Cv8.1CD', cacheName: '1Cv8.1CD (init ib)')
+                                                ]) {
+                                                    // Инициализация и первичная миграция
+                                                    initInfobase config
+                                                }
                                             }
                                         }
                                     }
@@ -148,8 +161,11 @@ void call() {
                                         steps {
                                             timeout(time: config.timeoutOptions.zipInfoBase, unit: TimeUnit.MINUTES) {
                                                 printLocation()
-
-                                                zipInfobase config, 'initInfoBase'
+                                                cache(maxCacheSize: 0, caches: [
+                                                        arbitraryFileCache(path: 'build/ib', includes: '1Cv8.1CD.zip', cacheName: '1Cv8.1CD (zip ib)')
+                                                ]) {
+                                                    zipInfobase config, 'initInfoBase'
+                                                }
                                             }
                                         }
                                     }

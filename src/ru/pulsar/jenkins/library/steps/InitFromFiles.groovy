@@ -25,6 +25,13 @@ class InitFromFiles implements Serializable {
             return
         }
 
+        String pathToInfobase = "$env.WORKSPACE/build/ib/1Cv8.1CD"
+
+        if (steps.fileExists(pathToInfobase)) {
+            // ИБ уже могла быть восстановлена из кэша
+            return
+        }
+
 
         Logger.println("Распаковка файлов")
 

@@ -27,6 +27,13 @@ class InitInfoBase implements Serializable {
             return
         }
 
+        String pathToInfobase = "$env.WORKSPACE/build/ib/1Cv8.1CD"
+
+        if (steps.fileExists(pathToInfobase)) {
+            // ИБ уже могла быть восстановлена из кэша
+            return
+        }
+
         List<String> logosConfig = ["LOGOS_CONFIG=$config.logosConfig"]
         steps.withEnv(logosConfig) {
 
