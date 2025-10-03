@@ -29,35 +29,39 @@ class GetExtensions implements Serializable {
 
         def env = steps.env()
 
-        steps.installLocalDependencies()
-
-        String vrunnerPath = initVRunnerPath()
-
-        Logger.println("Сборка расширений")
-
-        String sourceDirName = ""
-        if (config.sourceFormat == SourceFormat.EDT) {
-            sourceDirName = "$env.WORKSPACE/$EdtToDesignerFormatTransformation.EXTENSION_DIR"
-        } else {
-            sourceDirName = "$env.WORKSPACE"
-        }
-        extractConvertedExtensions(sourceDirName, steps)
-
         String pathToExtensionDir = "$env.WORKSPACE/${EXTENSIONS_OUT_DIR}/"
         FilePath localPathToExtensionDir = FileUtils.getFilePath(pathToExtensionDir)
-        localPathToExtensionDir.mkdirs()
 
-        config.initInfoBaseOptions.extensions.each {
-            if (it.initMethod == InitExtensionMethod.SOURCE) {
-                Logger.println("Сборка расширения ${it.name} из исходников")
-                String srcDir = getSrcDir(it, sourceDirName)
-                buildExtension(it, srcDir, vrunnerPath, steps)
-            } else if (it.initMethod == InitExtensionMethod.FILE){
-                Logger.println("Загрузка расширения ${it.name} из ${it.path}")
-                String pathToExtension = "$pathToExtensionDir/${it.name}.cfe"
-                FileUtils.loadFile(it.path, env, pathToExtension)
+        // собранные расширения могли быть восстановлены из кэша
+        if (!localPathToExtensionDir.exists() || localPathToExtensionDir.list()?.size() == 0) {
+
+            localPathToExtensionDir.mkdirs()
+            steps.installLocalDependencies()
+
+            String vrunnerPath = initVRunnerPath()
+
+            Logger.println("Сборка расширений")
+
+            String sourceDirName = ""
+            if (config.sourceFormat == SourceFormat.EDT) {
+                sourceDirName = "$env.WORKSPACE/$EdtToDesignerFormatTransformation.EXTENSION_DIR"
             } else {
-                Logger.println("Неизвестный метод инициализации расширения ${it.name}")
+                sourceDirName = "$env.WORKSPACE"
+            }
+            extractConvertedExtensions(sourceDirName, steps)
+
+            config.initInfoBaseOptions.extensions.each {
+                if (it.initMethod == InitExtensionMethod.SOURCE) {
+                    Logger.println("Сборка расширения ${it.name} из исходников")
+                    String srcDir = getSrcDir(it, sourceDirName)
+                    buildExtension(it, srcDir, vrunnerPath, steps)
+                } else if (it.initMethod == InitExtensionMethod.FILE){
+                    Logger.println("Загрузка расширения ${it.name} из ${it.path}")
+                    String pathToExtension = "$pathToExtensionDir/${it.name}.cfe"
+                    FileUtils.loadFile(it.path, env, pathToExtension)
+                } else {
+                    Logger.println("Неизвестный метод инициализации расширения ${it.name}")
+                }
             }
         }
 
