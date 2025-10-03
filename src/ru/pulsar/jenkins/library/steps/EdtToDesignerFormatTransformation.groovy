@@ -11,9 +11,9 @@ import ru.pulsar.jenkins.library.utils.Logger
 class EdtToDesignerFormatTransformation implements Serializable {
 
     public static final String WORKSPACE = 'build/edt-workspace'
-    public static final String CONFIGURATION_DIR = 'build/cfg'
-    public static final String CONFIGURATION_ZIP = 'build/cfg.zip'
-    public static final String CONFIGURATION_ZIP_STASH = 'cfg-zip'
+    public static final String CONFIGURATION_DIR = 'build/cf'
+    public static final String CONFIGURATION_ZIP = 'build/cf.zip'
+    public static final String CONFIGURATION_ZIP_STASH = 'cf-zip'
     public static final String EXTENSION_DIR = 'build/cfe_src'
     public static final String EXTENSION_ZIP = 'build/cfe_src.zip'
     public static final String EXTENSION_ZIP_STASH = 'cfe_src-zip'
@@ -41,7 +41,7 @@ class EdtToDesignerFormatTransformation implements Serializable {
 
         def engine = EdtCliEngineFactory.getEngine(config.edtVersion)
 
-        // file can be restored from the cache
+        // конфигурация, сконвертированная в формат конфигуратора, могла быть восстановлена из кэша
         if (!steps.fileExists(CONFIGURATION_ZIP)) {
             engine.edtToDesignerTransformConfiguration(steps, config)
             steps.zip(CONFIGURATION_DIR, CONFIGURATION_ZIP)
@@ -49,7 +49,7 @@ class EdtToDesignerFormatTransformation implements Serializable {
         steps.stash(CONFIGURATION_ZIP_STASH, CONFIGURATION_ZIP)
 
         if (config.needLoadExtensions()) {
-            // file can be restored from the cache
+            // расширения, сконвертированные в формат конфигуратора, могли быть восстановлены из кэша
             if (!steps.fileExists(EXTENSION_ZIP)) {
                 engine.edtToDesignerTransformExtensions(steps, config)
                 steps.zip(EXTENSION_DIR, EXTENSION_ZIP)
