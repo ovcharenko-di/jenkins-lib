@@ -34,21 +34,25 @@ class ZipInfobase implements Serializable {
             archiveName = "1Cv8.1CD.${stage}.zip"
         }
 
-        // опция отвечает только за то, будет ли файл сохранен в виде артефакта
+        String pathToArchive = "$env.WORKSPACE/build/ib/" + archiveName
         def archiveInfobase = false
-        if (archiveInfobaseOptions.onAlways
-                || (archiveInfobaseOptions.onFailure && (currentResult == Result.FAILURE || currentResult == Result.ABORTED))
-                || (archiveInfobaseOptions.onUnstable && currentResult == Result.UNSTABLE)
-                || (archiveInfobaseOptions.onSuccess && currentResult == Result.SUCCESS)) {
-            archiveInfobase = true
-        }
 
-        // Файл zip уже мог быть восстановлен из кэша
-        if (archiveInfobase && steps.fileExists(archiveName)) {
+        // ИБ уже могла быть восстановлена из кэша
+        if (!steps.fileExists(pathToArchive)) {
 
-            steps.fileOperations([steps.fileDeleteOperation(archiveName)])
-            steps.zip('build/ib', archiveName, '1Cv8.1CD', archiveInfobase)
+            // опция отвечает только за то, будет ли файл сохранен в виде артефакта
+            if (archiveInfobaseOptions.onAlways
+                    || (archiveInfobaseOptions.onFailure && (currentResult == Result.FAILURE || currentResult == Result.ABORTED))
+                    || (archiveInfobaseOptions.onUnstable && currentResult == Result.UNSTABLE)
+                    || (archiveInfobaseOptions.onSuccess && currentResult == Result.SUCCESS)) {
+                archiveInfobase = true
+            }
+
+            if (steps.fileExists(archiveName)) {
+                steps.fileOperations([steps.fileDeleteOperation(archiveName)])
+            }
         }
+        steps.zip('build/ib', archiveName, '1Cv8.1CD', archiveInfobase)
         steps.stash(archiveName, archiveName, false)
     }
 
